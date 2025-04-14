@@ -30,7 +30,7 @@ class DocumentSearchEngine:
         print(f"文档加载完成，共加载 {len(self.documents)} 条记录。")
         print(f"加载时间：{elapsed_time:.4f} 秒")
 
-    def print_documents_by_results(self, results):
+    def _print_documents_by_results(self, results):
         """
         根据 results 列表中的文档 ID，从 documents 中找到对应的文本并打印
         :param documents: list of dict, 文档列表，每个文档包含 'document_id' 和 'document_text'
@@ -132,19 +132,11 @@ def UI_Start():
 if __name__ == "__main__":
     file_path = "data/documents.jsonl"  # 替换为你的文件路径
     engine = DocumentSearchEngine(file_path)
-
-    """
-    start_time = time.time()  # 开始计时
-    tokenized_documents = [doc.get('document_text', '').lower().split() for doc in engine.documents]
-    end_time = time.time()  # 结束计时
-    elapsed_time = end_time - start_time  # 计算耗时
-    print(elapsed_time)
-    """
-
+    glove_path = "Models/glove.6B.300d.word2ve.txt"
+    fasttext_path = "Models/wiki-news-300d-1M-subword.vec"
     query = 'roman empire'
-    results, elpasetime = KnowledgeBase.bm25_keyword_search(engine.documents, query, top_k=1)
-    #print(results,elpasetime)
-    engine.print_documents_by_results(results)
-    #results, elpasetime = KnowledgeBase.tfidf_keyword_search(engine.documents, query)
-    #print(results,elpasetime)
+    #results, elpasetime = KnowledgeBase.bm25_keyword_search(engine.documents, query, top_k=1)
+    #results, elpasetime = KnowledgeBase.tfidf_keyword_search(engine.documents, query, top_k=1)
+    results, elpasetime = KnowledgeBase.glove_keyword_search(engine.documents, query, glove_path, top_k=1)
+    engine._print_documents_by_results(results)
     #UI_Start()
