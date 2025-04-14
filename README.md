@@ -9,3 +9,6 @@ COMP5423 Group Project
 1、DPR/ColBERT
 2、ANN/FAISS
 3、RAG
+
+# 运行注意事项
+需要将项目数据中的data文件夹解压并复制到main.py同一目录下
