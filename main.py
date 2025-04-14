@@ -1,5 +1,6 @@
 import json
 import time
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import KnowledgeBase
@@ -15,16 +16,36 @@ class DocumentSearchEngine:
         self._load_documents()
 
     def _load_documents(self):
-        """加载 JSONL 文件中的文档，并记录加载时间"""
+        """
+        加载 JSONL 文件中的文档，并记录加载时间
+        """
         start_time = time.time()  # 开始计时
         with open(self.file_path, 'r', encoding='utf-8') as file:
             for line in file:
                 doc = json.loads(line.strip())
+                doc['document_text'] = re.sub(r'<[^>]+>', '', doc['document_text'])  # 去除 HTML 标签
                 self.documents.append(doc)
         end_time = time.time()  # 结束计时
         elapsed_time = end_time - start_time
         print(f"文档加载完成，共加载 {len(self.documents)} 条记录。")
         print(f"加载时间：{elapsed_time:.4f} 秒")
+
+    def print_documents_by_results(self, results):
+        """
+        根据 results 列表中的文档 ID，从 documents 中找到对应的文本并打印
+        :param documents: list of dict, 文档列表，每个文档包含 'document_id' 和 'document_text'
+        :param results: list of tuple, 包含文档 ID 和分数的元组列表
+        """
+        for doc_id, score in results:
+            # 查找对应的文档
+            doc = next((doc for doc in self.documents if doc['document_id'] == doc_id), None)
+            if doc:
+                print(f"Document ID: {doc_id}")
+                print(f"Score: {score:.4f}")
+                print(f"Content: {doc['document_text']}")
+                print("---")
+            else:
+                print(f"Document ID: {doc_id} 未找到对应的文档")
 
 # Streamlit UI
 def UI_Start():
@@ -111,9 +132,19 @@ def UI_Start():
 if __name__ == "__main__":
     file_path = "data/documents.jsonl"  # 替换为你的文件路径
     engine = DocumentSearchEngine(file_path)
+
+    """
+    start_time = time.time()  # 开始计时
+    tokenized_documents = [doc.get('document_text', '').lower().split() for doc in engine.documents]
+    end_time = time.time()  # 结束计时
+    elapsed_time = end_time - start_time  # 计算耗时
+    print(elapsed_time)
+    """
+
     query = 'roman empire'
-    results, elpasetime = KnowledgeBase.bm25_keyword_search(engine.documents, query)
-    print(results,elpasetime)
+    results, elpasetime = KnowledgeBase.bm25_keyword_search(engine.documents, query, top_k=1)
+    #print(results,elpasetime)
+    engine.print_documents_by_results(results)
     #results, elpasetime = KnowledgeBase.tfidf_keyword_search(engine.documents, query)
     #print(results,elpasetime)
     #UI_Start()
