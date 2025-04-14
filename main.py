@@ -112,6 +112,8 @@ if __name__ == "__main__":
     file_path = "data/documents.jsonl"  # 替换为你的文件路径
     engine = DocumentSearchEngine(file_path)
     query = 'roman empire'
-    results, elpasetime = KnowledgeBase.search_keyword_from_documents(engine.documents, query)
-    print(results)
+    results, elpasetime = KnowledgeBase.bm25_keyword_search(engine.documents, query)
+    print(results,elpasetime)
+    #results, elpasetime = KnowledgeBase.tfidf_keyword_search(engine.documents, query)
+    #print(results,elpasetime)
     #UI_Start()
