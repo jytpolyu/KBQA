@@ -68,7 +68,7 @@ const SearchPage = () => {
   
             <div className="section">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 12 }}>
-                <Text strong style={{ whiteSpace: 'nowrap' }}>Algorithm:</Text>
+                <Text strong style={{ whiteSpace: 'nowrap', width: '80px' }}>Algorithm:</Text>
                 <Select
                   width={120}
                   value={algorithm}
@@ -83,7 +83,7 @@ const SearchPage = () => {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 12 }}>
-                <Text strong style={{ whiteSpace: 'nowrap' }}>Query:</Text>
+                <Text strong style={{ whiteSpace: 'nowrap', width: '80px'  }}>Query:</Text>
                 <Input
                   placeholder="Enter your query"
                   value={query}

@@ -1,8 +1,11 @@
 import json
 import time
 import uvicorn
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import KnowledgeBase
@@ -32,6 +35,18 @@ class DocumentSearchEngine:
 # 初始化 FastAPI 应用
 # -----------------------
 app = FastAPI()
+
+# 获取绝对路径
+dist_path = os.path.join(os.path.dirname(__file__), "client", "dist")
+
+# 挂载前端静态文件目录
+app.mount("/assets", StaticFiles(directory=os.path.join(dist_path, "assets")), name="assets")
+
+# 根路径返回 index.html
+@app.get("/")
+async def read_index():
+    return FileResponse(os.path.join(dist_path, "index.html"))
+
 
 app.add_middleware(
     CORSMiddleware,
