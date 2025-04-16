@@ -76,9 +76,9 @@ const SearchPage = () => {
                   style={{ width: '100%' }}
                 >
                   <Option value="TF-IDF">TF-IDF</Option>
-                  <Option value="BM25" disabled>BM25 (not implemented)</Option>
-                  <Option value="DPR" disabled>DPR (not implemented)</Option>
-                  <Option value="ColBERT" disabled>ColBERT (not implemented)</Option>
+                  <Option value="BM25">BM25</Option>
+                  <Option value="FAISS">FAISS</Option>
+                  <Option value="GloVe">GloVe</Option>
                 </Select>
               </div>
 
