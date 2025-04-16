@@ -1,7 +1,6 @@
 import json
 import time
 import uvicorn
-import faiss
 import os
 import re
 import numpy as np
@@ -9,9 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
 import KnowledgeBase
 import AnswerGeneration
 
@@ -29,6 +26,9 @@ class DocumentSearchEngine:
         self.llm_model_name = "Qwen/Qwen2.5-7B-Instruct"
         self.api_url = r"https://api.siliconflow.cn/v1"
         self.api_key = "sk-lwngutjeflildxuguicsqjkzzqpnnjiyuwldtaljmpgimwyl"
+        self.index_file_path = "Models/faiss_index.index"
+        self.glove_path = "Models/glove.6B.300d.word2ve.txt"
+        self.fasttext_path = "Models/wiki-news-300d-1M-subword.vec"
 
     def _load_documents(self):
         """
@@ -51,7 +51,7 @@ class DocumentSearchEngine:
         :param results: list of tuple, 包含文档 ID 和分数的元组列表
         """
         docs_list = []
-        for doc_id, score in results:
+        for doc_id in results:
             # 查找对应的文档
             doc = next((doc for doc in self.documents if doc['document_id'] == doc_id), None)
             if doc:
@@ -60,33 +60,6 @@ class DocumentSearchEngine:
                 print(f"Document ID: {doc_id} 未找到对应的文档")
         
         return docs_list
-
-    def build_and_save_faiss_index(self, index_file_path):
-        """
-        使用 FAISS 对文档建立索引并保存索引文件
-        :param index_file_path: str, 索引文件保存路径
-        :param model_name: str, 用于生成嵌入的预训练模型名称
-        """
-        # 加载预训练的 SentenceTransformer 模型
-        model = SentenceTransformer(self.model_name)
-
-        # 提取文档文本
-        texts = [doc['document_text'] for doc in self.documents]
-
-        # 生成文档嵌入
-        print("正在生成文档嵌入...")
-        embeddings = model.encode(texts, convert_to_tensor=False)
-
-        # 创建 FAISS 索引
-        print("正在创建 FAISS 索引...")
-        dimension = embeddings.shape[1]  # 嵌入向量的维度
-        index = faiss.IndexFlatL2(dimension)  # 使用 L2 距离的平面索引
-        index.add(np.array(embeddings, dtype=np.float32))  # 添加嵌入到索引
-
-        # 保存索引到文件
-        print(f"正在保存索引到文件：{index_file_path}...")
-        faiss.write_index(index, index_file_path)
-        print("索引保存完成！")
 
 # -----------------------
 # 初始化 FastAPI 应用
@@ -103,7 +76,6 @@ app.mount("/assets", StaticFiles(directory=os.path.join(dist_path, "assets")), n
 @app.get("/")
 async def read_index():
     return FileResponse(os.path.join(dist_path, "index.html"))
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -138,17 +110,34 @@ async def search(request: Request):
     results = ''
     if method == "TF-IDF":
         if mode == "SEARCH":
+            """
             results = [
                 {"document_id": 1234, "document_text": "文档1"},
                 {"document_id": 4567, "document_text": "文档2"},
             ]
-            # results = KnowledgeBase.search_keyword_from_documents(engine.documents, query)
+            """
+            results = KnowledgeBase.tfidf_keyword_search(engine.documents, query, 1)
+            results = engine._get_documents_by_id(results)
+
         elif mode == "ANSWER":
-            results = "这是我的答案"
-            # results = KnowledgeBase.answer_from_documents(engine.documents, query)
+            #results = "这是我的答案"
+            results = KnowledgeBase.dense_faiss_search(engine.index_file_path,query,engine.model_name,1)
+
+            document = engine._get_documents_by_id(results)
+
+            results = AnswerGeneration.qwen_qa(document, query)
     elif method == "BM25":
-        results = "bbb"
-        # results = KnowledgeBase.search_with_bm25(engine.documents, query)
+        #results = "bbb"
+        results = KnowledgeBase.bm25_keyword_search(engine.documents, query)
+        results = engine._get_documents_by_id(results)
+    elif method == "FAISS":
+        #results = "bbb"
+        results = KnowledgeBase.dense_faiss_search(engine.index_file_path,query,engine.model_name,1)
+        results = engine._get_documents_by_id(results)
+    elif method == "GloVe":
+        #results = "bbb"
+        results = KnowledgeBase.glove_keyword_search(engine.documents, query, engine.glove_path, top_k=1)
+        results = engine._get_documents_by_id(results)
     else:
         return {"error": f"暂不支持的算法：{method}"}
     end_time = time.time()
@@ -159,12 +148,6 @@ async def search(request: Request):
     }
 
 if __name__ == "__main__":
-    file_path = "data/documents.jsonl"  # 替换为你的文件路径
-    glove_path = "Models/glove.6B.300d.word2ve.txt"
-    fasttext_path = "Models/wiki-news-300d-1M-subword.vec"
-    index_file_path = "data/faiss_index.index"
-    engine = DocumentSearchEngine(file_path)
-
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
 
     """
@@ -177,7 +160,6 @@ if __name__ == "__main__":
 
     results, elpasetime = AnswerGeneration.qwen_qa(document, query, engine.api_url, engine.api_key)
 
-    
     #使用FAISS进行相似度搜索
     results, elpasetime = KnowledgeBase.dense_faiss_search(index_file_path,query,engine.model_name,1)
 
