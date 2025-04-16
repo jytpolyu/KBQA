@@ -14,14 +14,14 @@ logging.basicConfig(
     ]
 )
 
-def _vector_space_search(documents, query, model, top_k=None):
+def _vector_space_search(documents, query, model, top_k=1):
     """
     通用的向量空间检索函数
     :param documents: list of dict, 文档列表，每个文档包含 'document_id' 和 'document_text'
     :param query: str, 查询字符串
     :param model: gensim 模型对象 (Word2Vec, GloVe, FastText)
     :param top_k: int, 控制返回的结果数量，默认为 None 表示返回所有结果
-    :return: tuple, 包含排序后的结果列表和耗时（秒）
+    :return: list, 包含排序后的文档 ID 列表
     """
     try:
         start_time = time.time()  # 开始计时
@@ -67,10 +67,13 @@ def _vector_space_search(documents, query, model, top_k=None):
         if top_k is not None:
             ranked_results = ranked_results[:top_k]
 
+        # 提取文档 ID 列表
+        ranked_ids = [doc_id for doc_id, _ in ranked_results]
+
         end_time = time.time()  # 结束计时
         elapsed_time = end_time - start_time  # 计算耗时
 
-        return ranked_results, elapsed_time
+        return ranked_ids
     except Exception as e:
         logging.error(f"向量空间检索时发生错误: {e}")
         raise
@@ -129,12 +132,9 @@ if __name__ == "__main__":
         {"document_id": 3, "document_text": "This is the third document."}
     ]
     query = "example keywords"
-    model_path = "path/to/word2vec.model"  # 替换为实际模型路径
+    model_path = "Models/glove.6B.300d.word2ve.txt"
 
-    results, elapsed_time = glove_keyword_search(documents, query, model_path, top_k=2)
+    results = glove_keyword_search(documents, query, model_path, top_k=5)
 
-    # 输出结果
-    for doc_id, score in results:
-        print(f"Document ID: {doc_id}, Score: {score:.4f}")
-    print(f"耗时：{elapsed_time:.4f} 秒")
+    print(results)
 """

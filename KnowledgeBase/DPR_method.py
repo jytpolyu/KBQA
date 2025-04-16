@@ -14,14 +14,14 @@ logging.basicConfig(
     ]
 )
 
-def dense_faiss_search(index_file_path, question, model_name, top_k):
+def dense_faiss_search(index_file_path, question, model_name, top_k=1):
     """
     使用 FAISS 索引对传入的问题进行密集检索
     :param index_file_path: str, FAISS 索引文件路径
     :param question: str, 查询问题
     :param model_name: str, 用于生成嵌入的预训练模型名称
     :param top_k: int, 返回的文档数量
-    :return: list of tuple, 包含文档索引和分数的结果
+    :return: list, 包含按相似度排序的文档 ID 列表
     """
     try:
         start_time = time.time()  # 开始计时
@@ -45,11 +45,17 @@ def dense_faiss_search(index_file_path, question, model_name, top_k):
         # 将结果配对
         results = [(int(idx), float(dist)) for idx, dist in zip(indices[0], distances[0])]
 
+        # 按相似度降序排序
+        ranked_results = sorted(results, key=lambda x: x[1], reverse=True)
+
+        # 提取文档 ID 列表
+        ranked_ids = [doc_id for doc_id, _ in ranked_results]
+
         end_time = time.time()  # 结束计时
         elapsed_time = end_time - start_time  # 计算耗时
 
         logging.info(f"DPR 检索完成，共返回 {len(results)} 个结果，耗时 {elapsed_time:.4f} 秒")
-        return results, elapsed_time
+        return ranked_ids
     except Exception as e:
         logging.error(f"DPR 检索时发生错误: {e}")
         raise
@@ -57,15 +63,11 @@ def dense_faiss_search(index_file_path, question, model_name, top_k):
 """
 # 示例调用
 if __name__ == "__main__":
-    index_file_path = "data/faiss_index.bin"
+    index_file_path = "Models/faiss_index.index"
     question = "What is the Roman Empire?"
+    model_name = "sentence-transformers/all-MiniLM-L6-v2"
     top_k = 5
 
-    try:
-        results, elapsed_time = dense_faiss_search(index_file_path, question, top_k=top_k)
-        logging.info("检索结果：")
-        for idx, score in results:
-            logging.info(f"文档索引: {idx}, 距离: {score:.4f}")
-    except Exception as e:
-        logging.error(f"主程序运行时发生错误: {e}")
+    results = dense_faiss_search(index_file_path, question, model_name, top_k=top_k)
+    print("检索结果：", results)
 """

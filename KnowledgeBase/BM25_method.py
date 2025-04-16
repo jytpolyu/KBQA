@@ -12,13 +12,13 @@ logging.basicConfig(
     ]
 )
 
-def bm25_keyword_search(documents, query, top_k=None):
+def bm25_keyword_search(documents, query, top_k=1):
     """
     使用 rank_bm25 库实现 BM25 方法进行关键词匹配
     :param documents: list of dict, 文档列表，每个文档包含 'document_id' 和 'document_text'
     :param query: str, 查询字符串
     :param top_k: int, 控制返回的结果数量，默认为 None 表示返回所有结果
-    :return: list of tuple, 包含文档 ID 和 BM25 分数的元组列表，按分数降序排序
+    :return: list, 包含排序后的文档 ID 列表
     """
     try:
         start_time = time.time()  # 开始计时
@@ -53,11 +53,14 @@ def bm25_keyword_search(documents, query, top_k=None):
         if top_k is not None:
             ranked_results = ranked_results[:top_k]
 
+        # 提取文档 ID 列表
+        ranked_ids = [doc_id for doc_id, _ in ranked_results]
+
         end_time = time.time()  # 结束计时
         elapsed_time = end_time - start_time  # 计算耗时
 
         logging.info(f"BM25 匹配完成，共处理 {len(documents)} 篇文档，耗时 {elapsed_time:.4f} 秒")
-        return ranked_results, elapsed_time
+        return ranked_ids
     except Exception as e:
         logging.error(f"BM25 匹配时发生错误: {e}")
         raise
@@ -72,9 +75,7 @@ if __name__ == "__main__":
     ]
     query = "who"
 
-    results, elapsed_time = bm25_keyword_search(documents, query)
+    results = bm25_keyword_search(documents, query, 40)
 
-    # 输出结果
-    for doc_index, score in results:
-        print(f"Document {doc_index + 1} score: {score:.4f}")
+    print(results)
 """
