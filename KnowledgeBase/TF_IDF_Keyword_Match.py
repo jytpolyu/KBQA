@@ -1,144 +1,60 @@
-import math
 import time
 import logging
-from collections import Counter
-import numpy as np
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # 配置日志系统
 logging.basicConfig(
-    level=logging.INFO,  # 设置日志级别为 INFO
-    format="%(asctime)s - %(levelname)s - %(message)s",  # 日志格式
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("tfidf_keyword_search.log"),  # 输出到文件
-        logging.StreamHandler()  # 同时输出到控制台
+        logging.FileHandler("tfidf_keyword_search.log"),
+        logging.StreamHandler()
     ]
 )
 
-def compute_tf(document):
+def tfidf_keyword_search(documents, query, top_k=None):
     """
-    计算文档的词频 (TF)
-    :param document: list, 分词后的文档
-    :return: dict, 每个词的词频
-    """
-    try:
-        tf = Counter(document)
-        total_terms = len(document)
-        if total_terms == 0:
-            logging.warning("文档为空，无法计算词频")
-            return {}
-        for term in tf:
-            tf[term] /= total_terms
-        return tf
-    except Exception as e:
-        logging.error(f"计算词频时发生错误: {e}")
-        raise
-
-def compute_idf(documents):
-    """
-    计算逆文档频率 (IDF)
-    :param documents: list of list, 每个文档是分词后的词列表
-    :return: dict, 每个词的 IDF 值
-    """
-    try:
-        num_documents = len(documents)
-        if num_documents == 0:
-            logging.warning("文档列表为空，无法计算 IDF")
-            return {}
-        idf = {}
-        all_terms = set(term for doc in documents for term in doc)
-        for term in all_terms:
-            containing_docs = sum(1 for doc in documents if term in doc)
-            idf[term] = math.log((num_documents + 1) / (containing_docs + 1)) + 1  # 平滑处理
-        return idf
-    except Exception as e:
-        logging.error(f"计算 IDF 时发生错误: {e}")
-        raise
-
-def compute_tfidf_vector(tf, idf, vocab):
-    """
-    计算 TF-IDF 向量
-    :param tf: dict, 词频
-    :param idf: dict, 逆文档频率
-    :param vocab: list, 词汇表
-    :return: numpy array, TF-IDF 向量
-    """
-    try:
-        tfidf_vector = np.zeros(len(vocab))
-        for idx, term in enumerate(vocab):
-            tfidf_vector[idx] = tf.get(term, 0) * idf.get(term, 0)
-        return tfidf_vector
-    except Exception as e:
-        logging.error(f"计算 TF-IDF 向量时发生错误: {e}")
-        raise
-
-def cosine_similarity(vec1, vec2):
-    """
-    计算两个向量的余弦相似度
-    :param vec1: numpy array, 向量 1
-    :param vec2: numpy array, 向量 2
-    :return: float, 余弦相似度
-    """
-    try:
-        dot_product = np.dot(vec1, vec2)
-        magnitude1 = np.linalg.norm(vec1)
-        magnitude2 = np.linalg.norm(vec2)
-        if magnitude1 == 0 or magnitude2 == 0:
-            logging.warning("向量模为零，无法计算余弦相似度")
-            return 0.0
-        return dot_product / (magnitude1 * magnitude2)
-    except Exception as e:
-        logging.error(f"计算余弦相似度时发生错误: {e}")
-        raise
-
-def tfidf_keyword_search(documents, query):
-    """
-    使用 TF-IDF 方法进行关键词匹配
-    :param documents: list of str, 文档列表
+    使用 sklearn 的 TfidfVectorizer 和 cosine_similarity 实现关键词匹配
+    :param documents: list of dict, 文档列表，每个文档包含 'document_id' 和 'document_text'
     :param query: str, 查询字符串
+    :param top_k: int, 控制返回的结果数量，默认为 None 表示返回所有结果
     :return: tuple, 包含排序后的结果列表和耗时（秒）
     """
     try:
         start_time = time.time()  # 开始计时
 
-        # 对文档和查询进行分词
-        tokenized_documents = [doc.get('document_text', '').lower().split() for doc in documents]
-        documents_ids = [doc.get('document_id', -1) for doc in documents]
-        tokenized_query = query.lower().split()
+        # 提取文档文本和文档 ID
+        document_texts = [doc.get('document_text', '').lower() for doc in documents]
+        document_ids = [doc.get('document_id', -1) for doc in documents]
 
-        if not tokenized_documents:
+        if not document_texts:
             logging.warning("文档列表为空，无法进行关键词匹配")
             return [], 0.0
 
-        if not tokenized_query:
+        if not query.strip():
             logging.warning("查询字符串为空，无法进行关键词匹配")
             return [], 0.0
 
-        # 构建词汇表
-        vocab = list(set(term for doc in tokenized_documents for term in doc))
+        # 使用 TfidfVectorizer 计算 TF-IDF 矩阵
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform(document_texts)
 
-        # 计算 IDF
-        idf = compute_idf(tokenized_documents)
+        # 将查询转换为 TF-IDF 向量
+        query_vector = vectorizer.transform([query.lower()])
 
-        # 计算每个文档的 TF-IDF 向量
-        document_tfidfs = []
-        for doc in tokenized_documents:
-            tf = compute_tf(doc)
-            tfidf_vector = compute_tfidf_vector(tf, idf, vocab)
-            document_tfidfs.append(tfidf_vector)
+        # 计算余弦相似度
+        similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
 
-        # 计算查询的 TF-IDF 向量
-        query_tf = compute_tf(tokenized_query)
-        query_tfidf = compute_tfidf_vector(query_tf, idf, vocab)
+        # 将文档 ID 和相似度配对
+        results = list(zip(document_ids, similarities))
 
-        # 计算每个文档与查询的余弦相似度
-        scores = []
-        for doc_tfidf, idx in zip(document_tfidfs, documents_ids):
-            similarity = cosine_similarity(doc_tfidf, query_tfidf)
-            scores.append((idx, similarity))
+        # 按相似度降序排序
+        ranked_results = sorted(results, key=lambda x: x[1], reverse=True)
 
-        # 按相似度得分降序排序
-        ranked_results = sorted(scores, key=lambda x: x[1], reverse=True)
+        # 如果指定了 top_k，则只返回前 top_k 个结果
+        if top_k is not None:
+            ranked_results = ranked_results[:top_k]
 
         end_time = time.time()  # 结束计时
         elapsed_time = end_time - start_time  # 计算耗时
