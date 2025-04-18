@@ -3,3 +3,4 @@ data/
 *.log
 __pycache__/
 .DS_Store
+glove.6B.300d.word2ve.txt

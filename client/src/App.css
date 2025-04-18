@@ -53,6 +53,11 @@
   word-break: break-word;
 }
 
+.result-text {
+  max-height: 80px;
+  overflow-y: auto;
+}
+
 .answer-box {
   background-color: #fdfdfd;
   padding: 20px;

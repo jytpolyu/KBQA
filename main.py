@@ -108,38 +108,32 @@ async def search(request: Request):
 
     start_time = time.time()
     results = ''
-    if method == "TF-IDF":
-        if mode == "SEARCH":
-            """
-            results = [
-                {"document_id": 1234, "document_text": "文档1"},
-                {"document_id": 4567, "document_text": "文档2"},
-            ]
-            """
-            results = KnowledgeBase.tfidf_keyword_search(engine.documents, query, 1)
-            results = engine._get_documents_by_id(results)
-
-        elif mode == "ANSWER":
-            #results = "这是我的答案"
-            results = KnowledgeBase.dense_faiss_search(engine.index_file_path,query,engine.model_name,1)
-
-            document = engine._get_documents_by_id(results)
-
-            results = AnswerGeneration.qwen_qa(document, query)
-    elif method == "BM25":
-        #results = "bbb"
-        results = KnowledgeBase.bm25_keyword_search(engine.documents, query)
-        results = engine._get_documents_by_id(results)
-    elif method == "FAISS":
-        #results = "bbb"
-        results = KnowledgeBase.dense_faiss_search(engine.index_file_path,query,engine.model_name,1)
-        results = engine._get_documents_by_id(results)
-    elif method == "GloVe":
-        #results = "bbb"
-        results = KnowledgeBase.glove_keyword_search(engine.documents, query, engine.glove_path, top_k=1)
-        results = engine._get_documents_by_id(results)
+    
+    # 首先判断模式
+    if mode == "ANSWER":
+        # ANSWER模式固定使用FAISS和问答模型
+        doc_ids = KnowledgeBase.dense_faiss_search(engine.index_file_path, query, engine.model_name, 1)
+        documents = engine._get_documents_by_id(doc_ids)
+        results = AnswerGeneration.qwen_qa(documents, query)
+    elif mode == "SEARCH":
+        # SEARCH模式根据method选择不同搜索方法
+        if method == "TF-IDF":
+            doc_ids = KnowledgeBase.tfidf_keyword_search(engine.documents, query, 1)
+            results = engine._get_documents_by_id(doc_ids)
+        elif method == "BM25":
+            doc_ids = KnowledgeBase.bm25_keyword_search(engine.documents, query)
+            results = engine._get_documents_by_id(doc_ids)
+        elif method == "FAISS":
+            doc_ids = KnowledgeBase.dense_faiss_search(engine.index_file_path, query, engine.model_name, 1)
+            results = engine._get_documents_by_id(doc_ids)
+        elif method == "GloVe":
+            doc_ids = KnowledgeBase.glove_keyword_search(engine.documents, query, engine.glove_path, top_k=1)
+            results = engine._get_documents_by_id(doc_ids)
+        else:
+            return {"error": f"暂不支持的算法：{method}"}
     else:
-        return {"error": f"暂不支持的算法：{method}"}
+        return {"error": f"暂不支持的模式：{mode}"}
+    
     end_time = time.time()
 
     return {

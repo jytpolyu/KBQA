@@ -21,9 +21,12 @@ const SearchPage = () => {
 
     setLoading(true);
     try {
+      // 如果是answer模式，则固定method为FAISS
+      const method = mode === 'answer' ? 'FAISS' : algorithm;
+      
       const response = await axios.post(
         'http://127.0.0.1:8000/api/search',
-        { query, mode, method: algorithm },
+        { query, mode, method },
         { headers: { 'Content-Type': 'application/json' } }
       );
 
@@ -57,7 +60,7 @@ const SearchPage = () => {
         <div className="search-panel">
           <div className="search-card">
             <div className="section">
-              <Text strong>Select Mode:</Text>
+              <Text strong style={{ display: 'inline-block', width: '100px' }}>Select Mode:</Text>
               <Radio.Group value={mode} onChange={(e) => setMode(e.target.value)}>
                 <Radio value="search">Document Retrieval</Radio>
                 <Radio value="answer">Question Answering</Radio>
@@ -67,20 +70,23 @@ const SearchPage = () => {
             <Divider />
   
             <div className="section">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 12 }}>
-                <Text strong style={{ whiteSpace: 'nowrap', width: '80px' }}>Algorithm:</Text>
-                <Select
-                  width={120}
-                  value={algorithm}
-                  onChange={setAlgorithm}
-                  style={{ width: '100%' }}
-                >
-                  <Option value="TF-IDF">TF-IDF</Option>
-                  <Option value="BM25">BM25</Option>
-                  <Option value="FAISS">FAISS</Option>
-                  <Option value="GloVe">GloVe</Option>
-                </Select>
-              </div>
+              {/* 只在search模式下显示Algorithm选择模块 */}
+              {mode === 'search' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 12 }}>
+                  <Text strong style={{ whiteSpace: 'nowrap', width: '80px' }}>Algorithm:</Text>
+                  <Select
+                    width={120}
+                    value={algorithm}
+                    onChange={setAlgorithm}
+                    style={{ width: '100%' }}
+                  >
+                    <Option value="TF-IDF">TF-IDF</Option>
+                    <Option value="BM25">BM25</Option>
+                    <Option value="FAISS">FAISS</Option>
+                    <Option value="GloVe">GloVe</Option>
+                  </Select>
+                </div>
+              )}
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 12 }}>
                 <Text strong style={{ whiteSpace: 'nowrap', width: '80px'  }}>Query:</Text>
@@ -109,7 +115,9 @@ const SearchPage = () => {
                   {results.map((item, index) => (
                     <div className="result-item" key={index}>
                       <Text strong>ID:</Text> {item.document_id}<br />
-                      <Text>Content:</Text> {item.document_text}
+                      <div className='result-text'>
+                        <Text>Content:</Text> {item.document_text}
+                      </div>
                     </div>
                   ))}
                 </div>
