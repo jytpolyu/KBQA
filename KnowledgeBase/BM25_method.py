@@ -1,3 +1,9 @@
+# 说明：
+# 本文件实现了基于 BM25 算法的关键词检索功能。
+# 功能模块：
+# 1. 文档分词：对文档和查询进行分词处理。
+# 2. BM25 分数计算：使用 `rank_bm25` 库计算文档与查询的相关性分数。
+# 3. 文档排序：根据 BM25 分数对文档进行排序，并返回前 top_k 个结果。
 import time
 import logging
 from rank_bm25 import BM25Okapi

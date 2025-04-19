@@ -1,3 +1,9 @@
+# 说明：
+# 本文件实现了基于 TF-IDF 和余弦相似度的关键词检索功能。
+# 功能模块：
+# 1. 文档向量化：使用 `TfidfVectorizer` 将文档和查询转换为 TF-IDF 向量。
+# 2. 相似度计算：使用余弦相似度计算文档与查询的相关性。
+# 3. 文档排序：根据相似度对文档进行排序，并返回前 top_k 个结果。
 import time
 import logging
 from sklearn.feature_extraction.text import TfidfVectorizer

@@ -1,3 +1,9 @@
+# 说明：
+# 本文件实现了基于密集检索（DPR）和 FAISS 索引的文档检索功能。
+# 功能模块：
+# 1. FAISS 索引加载：加载预先构建的 FAISS 索引文件。
+# 2. 嵌入生成：使用 `SentenceTransformer` 模型生成查询的嵌入向量。
+# 3. 检索与排序：使用 FAISS 索引对查询进行检索，并根据相似度对结果排序。
 import faiss
 import numpy as np
 import time

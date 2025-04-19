@@ -1,3 +1,9 @@
+# 说明：
+# 本文件实现了基于向量空间模型的关键词检索功能，支持 GloVe、FastText 和 Word2Vec 模型。
+# 功能模块：
+# 1. 文档向量化：将文档和查询转换为向量表示。
+# 2. 相似度计算：使用余弦相似度计算文档与查询的相关性。
+# 3. 文档排序：根据相似度对文档进行排序，并返回前 top_k 个结果。
 import time
 import logging
 import numpy as np
