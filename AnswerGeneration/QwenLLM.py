@@ -1,3 +1,10 @@
+# 说明：
+# 本文件用于与 Qwen API 交互，基于输入的文档和问题生成答案。
+# 功能模块：
+# 1. 初始化 Qwen 客户端。
+# 2. 构造请求消息，包括问题和相关文档内容。
+# 3. 调用 Qwen API 生成答案，并限制答案长度为 10 个单词。
+# 4. 解析 API 响应并返回答案。
 import logging
 import time
 from openai import OpenAI
@@ -31,9 +38,9 @@ def qwen_qa(documents, question, api_url, api_key):
         logging.info("构造请求消息...")
         messages = [{'role': 'user', 'content': question}]
         if documents:
-            max_length = 30000 // len(documents)
+            max_length = 2000 // len(documents)
             context = "\n".join([doc.get('document_text', '')[:max_length] for doc in documents])
-            messages.insert(0, {'role': 'system', 'content': f"以下是相关文档内容：\n{context}"})
+            messages.insert(0, {'role': 'system', 'content': f"The following are relevant document contents:\n{context}. Please answer in English with a maximum of ten words."})
 
         # 调用 Qwen API
         logging.info("调用 Qwen API...")
@@ -52,7 +59,7 @@ def qwen_qa(documents, question, api_url, api_key):
             # 遍历 response 中的 choices
             if response:
                 message_content = response.choices[0].message.content
-                answer += message_content
+                answer = " ".join(message_content.split()[:10])
             else:
                 logging.info("Qwen 返回的答案为空，请检查网络连接")
                     
@@ -64,7 +71,7 @@ def qwen_qa(documents, question, api_url, api_key):
             end_time = time.time()  # 结束计时
             elapsed_time = end_time - start_time
             logging.info(f"Qwen QA 完成，耗时 {elapsed_time:.4f} 秒")
-            return answer, elapsed_time
+            return answer
         else:
             logging.warning("Qwen API 未返回有效答案")
             return "未能生成答案"
