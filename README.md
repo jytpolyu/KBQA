@@ -2,7 +2,7 @@
 
 ## 项目简介
 KBQA（Knowledge-Based Question Answering）系统是一个基于知识库的问答系统，支持多种检索算法（如 TF-IDF、BM25、FAISS、GloVe）和问答模型（如 Qwen 模型）。系统通过 FastAPI 提供 RESTful API 服务，并支持前端页面访问。
-项目Google Drive 链接：https://drive.google.com/file/d/1U89ROtJTTnRFH2BoYvD8ubOxYYXcGPLf/view?usp=sharing
+项目Google Drive 链接：https://drive.google.com/file/d/17I1SC8INMEZNIrxAZe6nQp-qgcGDiXjA/view?usp=sharing
 解压后按照“环境配置”和“启动方法”步骤执行即可。
 
 ## 项目人员
