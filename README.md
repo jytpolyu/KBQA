@@ -11,36 +11,36 @@ ZHAN Tanchen
 LIU Xingyu					 
 
 ## 项目结构
-├── AnswerGeneration/ # 问答生成模块 
-│ ├── __init__.py 
-│ ├── QwenLLM.py # 与 Qwen 模型交互的核心逻辑 
-├── client/ # 前端代码 
-│ ├── src/ # 前端源码 
-│ ├── public/ # 静态资源 
-│ ├── index.html # 前端入口文件 
-│ ├── vite.config.js # Vite 配置文件 
-│ ├── package.json # 前端依赖配置 
-├── EngineClass/ # 文档搜索引擎模块 
-│ ├── __init__.py 
-│ ├── DocumentSearchEngine.py # 文档加载与检索核心逻辑 
-├── KnowledgeBase/ # 检索算法模块 
-│ ├── __init__.py 
-│ ├── BM25_method.py # 基于 BM25 的检索算法 
-│ ├── DPR_method.py # 基于密集检索（DPR）的算法 
-│ ├── TF_IDF_Keyword_Match.py # 基于 TF-IDF 的检索算法 
-│ ├── Vector_Space_Model.py # 基于向量空间模型的检索算法 
-├── Models/ # 模型文件 
-│ ├── faiss_index.index # FAISS 索引文件 
-│ ├── glove.6B.300d.word2ve.txt # GloVe 词向量文件 
-│ ├── qwen_model_lora/ # Qwen 模型文件 
-├── data/ # 数据文件 
-│ ├── documents.jsonl # 文档数据 
-│ ├── train.jsonl # 训练数据 
-│ ├── val.jsonl # 验证数据 
-├── main.py # 系统主入口 
-├── train_model.py # 模型训练脚本 
-├── generate_answer.py # 生成预测答案脚本 
-├── requirements.txt # Python 依赖包 
+├── AnswerGeneration/ # 问答生成模块  
+│ ├── __init__.py  
+│ ├── QwenLLM.py # 与 Qwen 模型交互的核心逻辑  
+├── client/ # 前端代码  
+│ ├── src/ # 前端源码  
+│ ├── public/ # 静态资源  
+│ ├── index.html # 前端入口文件  
+│ ├── vite.config.js # Vite 配置文件  
+│ ├── package.json # 前端依赖配置  
+├── EngineClass/ # 文档搜索引擎模块  
+│ ├── __init__.py  
+│ ├── DocumentSearchEngine.py # 文档加载与检索核心逻辑  
+├── KnowledgeBase/ # 检索算法模块  
+│ ├── __init__.py  
+│ ├── BM25_method.py # 基于 BM25 的检索算法  
+│ ├── DPR_method.py # 基于密集检索（DPR）的算法  
+│ ├── TF_IDF_Keyword_Match.py # 基于 TF-IDF 的检索算法  
+│ ├── Vector_Space_Model.py # 基于向量空间模型的检索算法  
+├── Models/ # 模型文件  
+│ ├── faiss_index.index # FAISS 索引文件  
+│ ├── glove.6B.300d.word2ve.txt # GloVe 词向量文件  
+│ ├── qwen_model_lora/ # Qwen 模型文件  
+├── data/ # 数据文件  
+│ ├── documents.jsonl # 文档数据  
+│ ├── train.jsonl # 训练数据  
+│ ├── val.jsonl # 验证数据  
+├── main.py # 系统主入口  
+├── train_model.py # 模型训练脚本  
+├── generate_answer.py # 生成预测答案脚本  
+├── requirements.txt # Python 依赖包  
 └── README.md # 项目说明文件
 
 ## 功能介绍
